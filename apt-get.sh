@@ -11,3 +11,7 @@ done
 
 sudo npm install -g ember-cli
 sudo npm install -g phantomjs
+
+git config --global user.name "Christian Jonassen"
+git config --global user.email "flyrev@gmail.com"
+git config --global push.default simple
