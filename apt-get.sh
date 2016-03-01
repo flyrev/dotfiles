@@ -4,7 +4,7 @@ sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get -y install oracle-java8-installer
 
-for THING in nodejs emacs24-nox maven build-essential git-core rlwrap texlive-full
+for THING in "nodejs emacs24-nox maven build-essential git-core rlwrap texlive-full"
 do
     sudo apt-get -y install $THING
 done
