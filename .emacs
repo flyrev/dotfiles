@@ -1,3 +1,9 @@
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (setq debug-on-error t)
 (global-auto-revert-mode)
 
@@ -7,26 +13,13 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq make-backup-files nil) ; stop creating backup~ files
 (setq auto-save-default nil) ; stop creating #autosave# files
+(setq create-lockfiles nil) ; stop creating LOCK FILES
 
 (setq inhibit-startup-screen t)
 
-(setq ensime-startup-notification nil)
-
 (setq split-width-threshold nil)
 
-;; the repositories
-(require 'package)
-(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
-(add-to-list 'package-archives '("marmalade" . "http://marmalade.ferrier.me.uk/packages/"))
-(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
-(package-initialize)
-
 ;; mandatory modules installation
-
-(defun package-conditional-install (package-name)
-  "Installs a package if it is not present"
-  (unless (package-installed-p package-name)
-    (package-refresh-contents) (package-install package-name)))
 
 (defun packages-conditional-install (packages)
   ""
@@ -34,20 +27,10 @@
     (package-conditional-install (car packages))
     (packages-conditional-install (cdr packages))))
 
-(packages-conditional-install
- '(projectile web-mode ensime magit git-gutter neotree ace-window avy csv-mode
-	      elmacro key-chord multiple-cursors smartparens
-	      auto-package-update
-	      ))
-
-(projectile-global-mode)
 
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-;; ensime hooked to scala-mode
-(require 'ensime)
-(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -184,8 +167,6 @@
 ;; Who uses the bar to scroll?
 (scroll-bar-mode 0)
 
-(auto-package-update-maybe)
-
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -203,7 +184,6 @@
  )
 (load-theme 'monokai t)
 
-(setq ensime-startup-snapshot-notification nil)
 (setq scala-prettify-symbols
       '(
 	("=>" . ?⇒)
@@ -224,21 +204,6 @@
 	("beta" . ?β)
 	("Unit" . ?∅)
 	))
-
-(add-hook 'scala-mode-hook
-	  (lambda ()
-	    (ensime-scala-mode-hook)
-	    (setq prettify-symbols-alist scala-prettify-symbols)
-	    (prettify-symbols-mode)
-	    (define-key scala-mode-map (kbd "C-x M-e") 'ensime-fully-reload)
-	    ))
-
-(defun ensime-fully-reload ()
-  "reload ensime"
-  (interactive)
-  (ensime-shutdown)
-  (ensime))
-
 
 (require 'editorconfig)
 (editorconfig-mode 1)
@@ -262,5 +227,36 @@
 
 (setq-default indent-tabs-mode nil)
 
-(define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
-(define-key comint-mode-map (kbd "<down>") 'comint-next-input)
+;; prevent blinking
+(show-paren-mode 1)
+(setq blink-matching-delay 0.3)
+
+(setq web-mode-enable-auto-closing t)
+
+;; https://unix.stackexchange.com/a/152151/158817
+
+;; Makes *scratch* empty.
+(setq initial-scratch-message "")
+
+;; Removes *scratch* from buffer after the mode has been set.
+(defun remove-scratch-buffer ()
+  (if (get-buffer "*scratch*")
+      (kill-buffer "*scratch*")))
+(add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
+
+;; Removes *messages* from the buffer.
+(setq-default message-log-max nil)
+(kill-buffer "*Messages*")
+
+;; Removes *Completions* from buffer after you've opened a file.
+(add-hook 'minibuffer-exit-hook
+      '(lambda ()
+         (let ((buffer "*Completions*"))
+           (and (get-buffer buffer)
+                (kill-buffer buffer)))))
+
+;; Don't show *Buffer list* when opening multiple files at the same time.
+(setq inhibit-startup-buffer-menu t)
+
+;; Show only one active window when opening multiple files at the same time.
+(add-hook 'window-setup-hook 'delete-other-windows)
